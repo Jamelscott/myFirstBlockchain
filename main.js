@@ -1,12 +1,14 @@
-// const SHA256 = require("crypto-js/sha256");
+const SHA256 = require("crypto-js/sha256");
+let date = Date.now();
+let today = new Date(date);
+let trueDate = String(today.toDateString());
 
 class Block {
-  constructor(index, timestamp, data, previousHash = "") {
+  constructor(data, index, timestamp, previousHash = "") {
     this.index = index;
     this.timestamp = timestamp;
     this.data = data;
-    this.previousHash = previousHash;
-    this.hash = "";
+    this.hash = this.calculateHash();
   }
   calculateHash() {
     return SHA256(
@@ -28,18 +30,32 @@ class Blockchain {
   getLatestBlock() {
     return this.chain[this.chain.length - 1];
   }
-  addBlock() {
+  addBlock(newBlock) {
+    newBlock.timestamp = trueDate;
+    newBlock.index = this.chain.length;
     newBlock.previousHash = this.getLatestBlock().hash;
-    newBlock.index = this.chain.length + 1;
-    newBlock.data = "100 bitcoin";
-    newBlock.timestamp = new Date();
-    newBlock.hash = Block.calculateHash();
+    newBlock.hash = newBlock.calculateHash();
+    this.chain.push(newBlock);
+  }
+  validateChain() {
+    for (let i = 1; i < this.chain.length; i++) {
+      let currentBlock = this.chain[i];
+      let previousBlock = this.chain[i - 1];
+
+      if (currentBlock.previousHash != previousBlock.calculateHash()) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 
-const blockChain = new Block();
+const jamelCoin = new Blockchain();
 
-let date = Date.now();
-let today = new Date(date);
-let today2 = String(today.toDateString());
-console.log(today2);
+jamelCoin.addBlock(new Block({ amount: "100 bitcoin" }));
+jamelCoin.addBlock(new Block({ amount: "1000 bitcoin" }));
+console.log("before:", jamelCoin.validateChain());
+jamelCoin.chain[1].data = { amount: "1,000,000 bitcoin" };
+console.log("after:", jamelCoin.validateChain());
+console.log(jamelCoin);
+console.log(jamelCoin.chain[1].data);
